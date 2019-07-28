@@ -1,6 +1,8 @@
 package lesson3;
 
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 
 public class Main {
@@ -36,16 +38,14 @@ public class Main {
 	  Следует учесть, что под одной фамилией может быть несколько записей.
 	  Итого должно получиться 3 класса Main, PhoneBook, Person.*/
 
-        ArrayList<Person> list = new ArrayList<>();
-        list.add(new Person("Ivanov","8999562356","iv@mail.ru"));
-        list.add(new Person("Fedorov","8913252569" ,"fe@mail.ru"));
-        list.add(new Person("Ivanov","8999633696" ,"iv2@mail.ru"));
-        list.add(new Person("Ivanov","899944112" ,"iv3@mail.ru"));
-        list.add(new Person("Fedorov","8913887799" ,"fe2@mail.ru"));
-        list.add(new Person("Petrov","89233205987" ,"pe@mail.ru"));
-        list.add(new Person("Sidorov","89140591024" ,"si@mail.ru"));
-
-        PhoneBook phBk = new PhoneBook(list);
+        PhoneBook phBk = new PhoneBook();
+        phBk.addPerson("Ivanov","8999562356","iv@mail.ru");
+        phBk.addPerson("Fedorov","8913252569" ,"fe@mail.ru");
+        phBk.addPerson("Ivanov","8999633696" ,"iv2@mail.ru");
+        phBk.addPerson("Ivanov","899944112" ,"iv3@mail.ru");
+        phBk.addPerson("Fedorov","8913887799" ,"fe2@mail.ru");
+        phBk.addPerson("Petrov","89233205987" ,"pe@mail.ru");
+        phBk.addPerson("Sidorov","89140591024" ,"si@mail.ru");
 
         System.out.println(phBk.getPhoneNumbersByLastName("Ivanov"));
         System.out.println(phBk.getPhoneNumbersByLastName("Fedorov"));
@@ -59,9 +59,9 @@ public class Main {
     }
 
     private static Set<String> getAListOfWords(String[] arr){
-        List<String> list = Arrays.asList(arr);
-        Set<String> set = new  HashSet<>(list);
-        return set;
+       // List<String> list = Arrays.asList(arr);
+        //Set<String> set =
+        return new  HashSet<>(Arrays.asList(arr));
 
     }
     private static HashMap<String, Integer> getTheAmountOfEachWord(String[] arr){
@@ -81,21 +81,32 @@ public class Main {
 }
 
  class PhoneBook{
-    public HashMap<Integer, HashMap> phoneBook = new HashMap<>();
+    public HashMap<String, ArrayList> phoneBook = new HashMap<>();
 
-    PhoneBook(ArrayList<Person> list){
-        for (int j = 0; j < list.size(); j++) {
-            HashMap<String, Person> person = new HashMap<>();
-            person.put((list.get(j).getLastName()),(list.get(j)));
-            phoneBook.put(j,person);
+    public void addPerson(String lastName, String phoneNumber, String email){
+        if(phoneBook.containsKey(lastName)){
+            ArrayList<Person> persons = phoneBook.get(lastName);
+            persons.add(new Person(phoneNumber, email));
+        }
+        else {
+            ArrayList<Person> persons = new ArrayList<>();
+            persons.add(new Person(phoneNumber, email));
+            phoneBook.put(lastName, persons);
         }
     }
 
     public ArrayList<String> getPhoneNumbersByLastName(String lastName) {
 
-        ArrayList<String> phones = new ArrayList<>();
-
-        for (Map.Entry<Integer, HashMap> entry : phoneBook.entrySet()) {
+       if (!phoneBook.containsKey(lastName)){return null;}
+       else {
+           ArrayList<String> result = new ArrayList<>();
+           ArrayList<Person> phones = phoneBook.get(lastName);
+           for (int i = 0; i < phones.size(); i++) {
+               result.add(phones.get(i).phoneNumber);
+           }
+           return result;
+       }
+       /*for (Map.Entry<Integer, HashMap> entry : phoneBook.entrySet()) {
             //System.out.println(entry.getKey() + entry.getValue().getPhoneNumber());
             HashMap<String, Person> person = phoneBook.get(entry.getKey());
             for (Map.Entry<String, Person> entry2 : person.entrySet()) {
@@ -105,12 +116,12 @@ public class Main {
             }
 
         }
-        return phones;
+        return phones;*/
     }
 
     public ArrayList<String> getEmailsByLastName(String lastName) {
 
-        ArrayList<String> emails = new ArrayList<>();
+       /* ArrayList<String> emails = new ArrayList<>();
 
         for (Map.Entry<Integer, HashMap> entry : phoneBook.entrySet()) {
             //System.out.println(entry.getKey() + entry.getValue().getPhoneNumber());
@@ -121,8 +132,18 @@ public class Main {
                 }
             }
 
+        }*/
+        if (!phoneBook.containsKey(lastName)){return null;}
+        else {
+            ArrayList<String> result = new ArrayList<>();
+            ArrayList<Person> emails = phoneBook.get(lastName);
+            for (int i = 0; i < emails.size(); i++) {
+                result.add(emails.get(i).email);
+            }
+            return result;
         }
-        return emails;
+      /* return phoneBook.get(lastName).stream().map(person -> person.email).
+                collect(Collectors.toCollection(ArrayList::new));*/
     }
 
 
