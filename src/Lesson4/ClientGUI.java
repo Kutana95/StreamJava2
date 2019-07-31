@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class ClientGUI extends JFrame  implements ActionListener, Thread.UncaughtExceptionHandler  {
@@ -66,10 +67,11 @@ public class ClientGUI extends JFrame  implements ActionListener, Thread.Uncaugh
 
         cbAlwaysOnTop.addActionListener(this);
         btnSend.addActionListener(this);
-        tfMessage.addKeyListener(new KeyAdapter() {
+        tfMessage.addActionListener(this);
+        /*tfMessage.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 if(e.getKeyCode() == KeyEvent.VK_ENTER){
-                    btnSend.doClick();}}});
+                    btnSend.doClick();}}});*/
 
         add(panelTop, BorderLayout.NORTH);
         add(panelBottom, BorderLayout.SOUTH);
@@ -88,13 +90,8 @@ public class ClientGUI extends JFrame  implements ActionListener, Thread.Uncaugh
         Object src = e.getSource();
         if (src == cbAlwaysOnTop) {
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
-        } else if (src == btnSend ){
-            log.setText(log.getText() + "\n" + tfMessage.getText());
-            tfMessage.setText("");
-            try {
-                writeFileContents(FILE_NAME);
-                }
-            catch (Exception ex) { throw new RuntimeException(ex); }
+        } else if (src == btnSend || src == tfMessage){
+            sendMessageToLog();
     } else {
             throw new RuntimeException("Unknown source: " + src);
         }
@@ -115,10 +112,40 @@ public class ClientGUI extends JFrame  implements ActionListener, Thread.Uncaugh
         System.exit(1);
     }
 
-    private void writeFileContents(String fileName) throws IOException {
-        FileOutputStream fos = new FileOutputStream(fileName);
-        fos.write(log.getText().getBytes());
-        fos.flush();
-        fos.close();
+    private void sendMessageToLog(){
+        String msg = tfMessage.getText();
+        String username = tfLogin.getText();
+        if ("".equals(msg)) return;
+        tfMessage.setText(null);
+        tfMessage.requestFocusInWindow();
+        putLog(String.format("%s: %s",username,msg));
+        writeFileContents(msg, username);
+
+    }
+    private void writeFileContents(String msg, String username) {
+        try(FileWriter file = new FileWriter("log.txt",true)){
+            file.write(username + ": " + msg + "\n");
+            file.flush();
+        }catch(IOException e){
+            /*if(!shownIoErrors){
+                shownIoErrors =  true;
+                showException(e);
+
+            }*/
+
+        }
+
+
+    }
+    private void putLog(String message)  {
+        if ("".equals(message)) return;
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                log.append(message + "\n");
+                log.setCaretPosition(log.getDocument().getLength());
+            }
+        });
+
     }
 }
